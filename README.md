@@ -1,25 +1,25 @@
 # Arm Memory Agent
 
-Arm Memory Agent is a small, reproducible AI-agent optimization project for the Arm AI Optimization Challenge.
+Arm Memory Agent is a small, reproducible AI-agent optimization project for the Arm Create: AI Optimization Challenge.
 
 It demonstrates a practical pattern for running agent workflows on CPU-constrained Arm64 environments: instead of sending every prior note, source, and instruction back through the model context, the agent keeps a compact memory store, retrieves only relevant evidence, and emits an auditable prompt pack.
 
-## Why this matters
+## Why This Matters
 
 Many education, support, and research agents become slow and expensive because they keep appending conversation history. This prototype measures a lean alternative:
 
 - short-term notes are normalized into memory cards;
 - repeated facts are deduplicated;
 - the prompt is rebuilt from only the most relevant cards;
-- every run reports context bytes, selected memory, and timing.
+- every run reports context bytes, selected memory, timing, and a deterministic prompt hash.
 
 The target use case is a LearnBridge-style tutoring workspace where the learner accumulates notes, files, questions, and section-by-section explanations over time.
 
-## Track
+## Challenge Track
 
-Track 1: MemoryAgent.
+Cloud AI.
 
-The project focuses on persistent memory, retrieval, and context compression for long-running AI interactions.
+The project focuses on Arm64 cloud and CPU-friendly agent infrastructure: persistent memory, retrieval, context compression, reproducible benchmarking, and developer workflows that do not require GPU-only dependencies.
 
 ## Quick Start
 
@@ -50,14 +50,25 @@ The benchmark prints:
 
 When `--queries` is used, the benchmark also reports average compression, total bytes saved, average tag recall, and a Markdown report suitable for a submission README or Devpost evidence section.
 
-## Arm64 Validation Plan
+Current benchmark evidence:
 
-The project is designed to run without GPU dependencies. The intended validation path is:
+- 180 memory cards
+- 4 benchmark queries
+- average compression ratio: `0.0275`
+- total bytes saved vs naive prompts: `189596`
+- average tag recall: `1.0`
+- average runtime: `3.345 ms`
 
-1. Run the benchmark on `linux/amd64`.
-2. Run the same benchmark on `linux/arm64`.
-3. Compare output hashes and timing.
-4. Include GitHub Actions logs or local Arm64 terminal screenshots in the Devpost submission.
+## Arm64 Validation
+
+The project is designed to run without GPU dependencies. The repository includes a GitHub Actions workflow that runs the same benchmark on both `ubuntu-24.04` and `ubuntu-24.04-arm`:
+
+1. Generate the synthetic learning-memory dataset.
+2. Run the query-suite benchmark.
+3. Rebuild the Markdown benchmark report.
+4. Run the unit tests.
+
+This makes the optimization evidence repeatable on standard x86 runners and Arm64 runners.
 
 ## Status
 
