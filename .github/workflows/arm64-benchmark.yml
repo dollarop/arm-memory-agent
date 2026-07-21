@@ -1,0 +1,24 @@
+name: arm64 benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  benchmark:
+    strategy:
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generate synthetic dataset
+        run: python -m src.generate_learning_dataset --output examples/synthetic_learning_notes.jsonl --count 180
+      - name: Run benchmark
+        run: python -m src.memory_agent_benchmark --dataset examples/synthetic_learning_notes.jsonl --queries examples/query_suite.json --markdown-report reports/benchmark.md
+      - name: Run tests
+        run: python -m unittest discover -s tests

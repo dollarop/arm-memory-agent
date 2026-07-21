@@ -1,0 +1,18 @@
+[
+  {
+    "query": "Build a compact tutoring plan for grid storage with evidence, practice, and audio review.",
+    "expected_tags": ["energy", "grid-storage", "memory"]
+  },
+  {
+    "query": "Create a healthcare AI risk lesson that tracks privacy, supervision, and proof.",
+    "expected_tags": ["healthcare", "ai-triage", "memory"]
+  },
+  {
+    "query": "Prepare a bilingual learning exercise with pronunciation notes and teach-back checks.",
+    "expected_tags": ["language", "bilingual-practice", "learning"]
+  },
+  {
+    "query": "Explain a calculus formula with assumptions, examples, and likely mistakes.",
+    "expected_tags": ["math", "calculus-formula", "learning"]
+  }
+]

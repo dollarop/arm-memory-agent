@@ -1,0 +1,7 @@
+{"id":"n1","text":"The learner is studying energy transition: grid, storage, nuclear, and renewables.","tags":["topic","energy"]}
+{"id":"n2","text":"They need explanations in Spanish and English, with section-by-section audio.","tags":["profile","accessibility"]}
+{"id":"n3","text":"Reliable energy planning depends on transmission, storage duration, demand response, and firm capacity.","tags":["energy","concept"]}
+{"id":"n4","text":"The app should avoid dumping answers; it should create a reusable learning path with proof, exam, notes, tools, and teach-back.","tags":["product","memory"]}
+{"id":"n5","text":"The learner wants notes, calculators, sketching, and timer tools available while reading.","tags":["workflow","tools"]}
+{"id":"n6","text":"For judges, show how a persistent workspace remembers goals, source files, profile, and notes without requiring a new prompt each time.","tags":["demo","memory"]}
+
