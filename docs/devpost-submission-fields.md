@@ -66,6 +66,10 @@ https://github.com/dollarop/arm-memory-agent/blob/main/devpost/arm-memory-agent-
 
 ## Video demo
 
+Public YouTube link:
+
+https://youtu.be/1Xgxh84CBnA
+
 Local/repo MP4 source:
 
 devpost/arm-memory-agent-demo.mp4
@@ -74,7 +78,7 @@ Repository URL:
 
 https://github.com/dollarop/arm-memory-agent/blob/main/devpost/arm-memory-agent-demo.mp4
 
-Important: Devpost requires the demo video to be uploaded publicly to YouTube, Vimeo, or Youku before the final form can accept it. Upload this MP4 to YouTube, then paste the YouTube link in the Video demo field.
+Use the YouTube link above in the Devpost Video demo field.
 
 ## Video title
 
