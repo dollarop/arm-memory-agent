@@ -1,4 +1,5 @@
 from pathlib import Path
+import math
 import textwrap
 
 import imageio.v2 as imageio
@@ -56,6 +57,36 @@ def draw_title(draw, title, subtitle, w):
     draw.rounded_rectangle((70, 178, w - 70, 186), radius=6, fill=TEAL)
 
 
+def ease(t):
+    t = max(0, min(1, t))
+    return 0.5 - math.cos(t * math.pi) / 2
+
+
+def lerp(a, b, t):
+    return a + (b - a) * ease(t)
+
+
+def draw_arrow(draw, start, end, fill=TEAL, width=6):
+    draw.line((start, end), fill=fill, width=width)
+    angle = math.atan2(end[1] - start[1], end[0] - start[0])
+    head = 18
+    left = (end[0] - head * math.cos(angle - 0.55), end[1] - head * math.sin(angle - 0.55))
+    right = (end[0] - head * math.cos(angle + 0.55), end[1] - head * math.sin(angle + 0.55))
+    draw.polygon([end, left, right], fill=fill)
+
+
+def draw_card(draw, x, y, w, h, title, body, accent=TEAL):
+    rounded(draw, (x, y, x + w, y + h), 18, CARD, (207, 222, 226), 2)
+    draw.rounded_rectangle((x, y, x + 12, y + h), radius=6, fill=accent)
+    draw.text((x + 28, y + 24), title, font=font(25, True), fill=accent)
+    wrap(draw, body, x + 28, y + 62, w - 55, font(19), fill=INK, line_gap=5)
+
+
+def draw_metric(draw, x, y, value, label, color=GOLD, scale=1.0):
+    draw.text((x, y), value, font=font(int(44 * scale), True), fill=color)
+    draw.text((x, y + int(55 * scale)), label, font=font(int(20 * scale)), fill=(213, 231, 234))
+
+
 def gallery_image():
     w, h = 1600, 1067
     img = Image.new("RGB", (w, h), BG)
@@ -106,18 +137,134 @@ def slide(title, body, accent=TEAL):
 
 
 def video():
-    slides = [
-        slide("The bottleneck", ["Useful agents remember notes, files, questions, and feedback.", "Naive long-context prompting gets slower and harder to audit."]),
-        slide("The Arm-friendly fix", ["Arm Memory Agent stores compact memory cards, removes duplicate context, and retrieves only the evidence needed for the current query."]),
-        slide("Measured compression", ["On the benchmark suite: 180 memory cards, 4 queries, average compression ratio 0.0275, and 189,596 bytes saved versus naive prompts."], GOLD),
-        slide("Auditable outputs", ["Every prompt pack includes selected memory IDs, byte counts, runtime, and a deterministic SHA-256 hash for reproducible inspection."], MINT),
-        slide("Arm64 validation", ["GitHub Actions passed on both ubuntu-24.04 and ubuntu-24.04-arm, using only Python standard-library runtime for the benchmark logic."]),
-        slide("Cloud AI track", ["The project demonstrates a CPU-first agent memory pattern suitable for Arm64 cloud deployments and education/research assistants."], MINT),
-    ]
+    w, h, fps = 1280, 720, 24
+    duration = 36
     frames = []
-    for s in slides:
-        frames.extend([s] * 120)
-    imageio.mimsave(OUT / "arm-memory-agent-demo.mp4", frames, fps=24, quality=8, macro_block_size=16)
+
+    def base():
+        img = Image.new("RGB", (w, h), BG)
+        d = ImageDraw.Draw(img)
+        d.rounded_rectangle((0, 0, w, 78), radius=0, fill=(12, 54, 70))
+        d.text((54, 22), "Arm Memory Agent", font=font(30, True), fill=(255, 255, 255))
+        d.text((940, 27), "Cloud AI on Arm64", font=font(22, True), fill=(202, 239, 234))
+        return img, d
+
+    for frame in range(duration * fps):
+        t = frame / fps
+        img, d = base()
+
+        if t < 6:
+            p = t / 6
+            d.text((70, 115), "Long agent context gets heavy", font=font(44, True), fill=INK)
+            cards = [
+                ("Learner note", "Grid storage needs flexible demand."),
+                ("Source quote", "Renewables require firm capacity."),
+                ("Prior answer", "Use evidence, not loose summary."),
+                ("Teacher plan", "Explain, test, then teach back."),
+                ("Follow-up", "Compare nuclear, storage, and grid."),
+            ]
+            for i, (title, body) in enumerate(cards):
+                x = int(lerp(-360, 90 + i * 38, min(1, p * 1.7 - i * 0.13)))
+                y = 190 + i * 78
+                draw_card(d, x, y, 455, 68, title, body, TEAL if i % 2 else MINT)
+            d.text((705, 230), "Naive prompt:", font=font(32, True), fill=TEAL)
+            naive = int(lerp(0, 48748, p))
+            d.text((705, 290), f"{naive:,} bytes", font=font(58, True), fill=GOLD)
+            wrap(d, "Every old note is appended again, so the agent grows slower and harder to audit.", 710, 375, 430, font(26))
+
+        elif t < 12:
+            p = (t - 6) / 6
+            d.text((70, 115), "Normalize memory, then retrieve only what matters", font=font(38, True), fill=INK)
+            xs = [70, 70, 70, 70]
+            ys = [210, 315, 420, 525]
+            labels = ["notes", "files", "questions", "feedback"]
+            for i, lab in enumerate(labels):
+                draw_card(d, xs[i], ys[i], 265, 76, lab.title(), "structured memory card", MINT)
+            draw_arrow(d, (370, 360), (570, 360), TEAL, 7)
+            rounded(d, (590, 205, 930, 555), 28, (14, 34, 49), None)
+            d.text((630, 250), "Memory store", font=font(34, True), fill=(255, 255, 255))
+            for i in range(9):
+                yy = 315 + i * 22
+                alpha_w = int(lerp(0, 235, min(1, p * 1.3 - i * 0.04)))
+                d.rounded_rectangle((635, yy, 635 + alpha_w, yy + 10), radius=5, fill=(70, 177, 155))
+            draw_arrow(d, (955, 360), (1120, 360), GOLD, 7)
+            d.text((1032, 287), "query", font=font(28, True), fill=INK)
+            d.rounded_rectangle((1025, 333, 1190, 388), radius=18, fill=GOLD)
+            d.text((1058, 348), "retrieve", font=font(24, True), fill=INK)
+
+        elif t < 18:
+            p = (t - 12) / 6
+            d.text((70, 115), "Compact prompt pack", font=font(44, True), fill=INK)
+            raw_w = int(lerp(940, 120, p))
+            opt_w = int(lerp(80, 620, p))
+            d.text((90, 210), "Full workspace", font=font(26, True), fill=INK)
+            d.rounded_rectangle((90, 255, 1030, 305), radius=20, fill=(219, 230, 232))
+            d.rounded_rectangle((90, 255, 90 + raw_w, 305), radius=20, fill=(172, 191, 197))
+            d.text((90, 355), "Selected memory", font=font(26, True), fill=INK)
+            d.rounded_rectangle((90, 400, 1030, 450), radius=20, fill=(219, 230, 232))
+            d.rounded_rectangle((90, 400, 90 + opt_w, 450), radius=20, fill=MINT)
+            ratio = lerp(1.0, 0.0275, p)
+            saved = int(lerp(0, 189596, p))
+            rounded(d, (760, 505, 1190, 650), 24, (14, 34, 49), None)
+            draw_metric(d, 795, 530, f"{ratio:.4f}", "compression ratio", GOLD)
+            draw_metric(d, 990, 530, f"{saved:,}", "bytes saved", MINT, 0.84)
+
+        elif t < 24:
+            p = (t - 18) / 6
+            d.text((70, 115), "Auditable output, not a black box", font=font(44, True), fill=INK)
+            rounded(d, (90, 190, 780, 610), 28, (14, 34, 49), None)
+            lines = [
+                "{",
+                '  "selected_cards": ["synthetic-175", "synthetic-169"],',
+                '  "optimized_prompt_bytes": 1345,',
+                '  "tag_recall": 1.0,',
+                '  "prompt_hash": "44252cc8d8e8..."',
+                "}",
+            ]
+            for i, line in enumerate(lines):
+                max_chars = int(lerp(0, len(line), min(1, p * 2.0 - i * 0.13)))
+                d.text((130, 235 + i * 50), line[:max_chars], font=font(22), fill=(218, 238, 241))
+            rounded(d, (835, 260, 1168, 525), 24, CARD, (210, 225, 228), 2)
+            d.text((875, 305), "Every run reports:", font=font(28, True), fill=TEAL)
+            for i, item in enumerate(["memory IDs", "byte counts", "runtime", "SHA-256 hash"]):
+                y = 365 + i * 36
+                d.ellipse((875, y + 4, 891, y + 20), fill=MINT)
+                d.text((905, y), item, font=font(24), fill=INK)
+
+        elif t < 30:
+            p = (t - 24) / 6
+            d.text((70, 115), "Validated on Arm64", font=font(48, True), fill=INK)
+            rounded(d, (115, 210, 1165, 585), 28, (14, 34, 49), None)
+            d.text((165, 270), "GitHub Actions", font=font(38, True), fill=(255, 255, 255))
+            jobs = [("ubuntu-24.04", "success"), ("ubuntu-24.04-arm", "success")]
+            for i, (name, status) in enumerate(jobs):
+                y = 355 + i * 88
+                d.rounded_rectangle((165, y, 1115, y + 58), radius=18, fill=(26, 68, 85))
+                d.text((200, y + 15), name, font=font(24, True), fill=(230, 245, 247))
+                check = int(lerp(0, 1, p * 2 - i * 0.4))
+                if check:
+                    d.ellipse((945, y + 12, 980, y + 47), fill=MINT)
+                    d.line((954, y + 30, 963, y + 39, 974, y + 20), fill=(255, 255, 255), width=5)
+                    d.text((995, y + 15), status, font=font(24, True), fill=MINT)
+            d.text((165, 515), "Run 4: github.com/dollarop/arm-memory-agent/actions/runs/29870665281", font=font(19), fill=(205, 226, 231))
+
+        else:
+            p = (t - 30) / 6
+            d.text((70, 120), "Cloud AI: smaller prompts for CPU-first agents", font=font(38, True), fill=INK)
+            rounded(d, (120, 230, 1160, 560), 30, CARD, (210, 225, 228), 2)
+            d.text((175, 285), "0.0275", font=font(68, True), fill=GOLD)
+            d.text((175, 360), "avg compression ratio", font=font(26), fill=INK)
+            d.text((510, 285), "189,596", font=font(68, True), fill=TEAL)
+            d.text((510, 360), "bytes saved", font=font(26), fill=INK)
+            d.text((865, 285), "Arm64", font=font(68, True), fill=MINT)
+            d.text((865, 360), "Actions success", font=font(26), fill=INK)
+            repo = "github.com/dollarop/arm-memory-agent"
+            d.text((330, 492), repo, font=font(30, True), fill=TEAL)
+            d.rounded_rectangle((120, 600, int(120 + lerp(0, 1040, p)), 612), radius=6, fill=MINT)
+
+        frames.append(img)
+
+    imageio.mimsave(OUT / "arm-memory-agent-demo.mp4", frames, fps=fps, quality=8, macro_block_size=16)
 
 
 def script():
